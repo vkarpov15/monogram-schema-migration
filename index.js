@@ -6,7 +6,7 @@ let composition = require('composition');
 let debug = require('debug')('monogram:migration');
 
 module.exports = function(schema) {
-  schema._obj['__schemaVersion'] = { $type: Number };
+  schema.path('__schemaVersion', { $type: Number });
 
   schema.minSchemaVersion = 0;
   schema.migrations = [];
@@ -57,6 +57,16 @@ module.exports = function(schema) {
         });
       });
     });
+  });
+
+  schema.method('document', '$migrate', function() {
+    return applyMigrations(schema, this);
+  });
+
+  schema.queue(function() {
+    if (this.$isNew()) {
+      this.__schemaVersion = schema.migrations.length;
+    }
   });
 
   schema.middleware('findOne', function*(next) {

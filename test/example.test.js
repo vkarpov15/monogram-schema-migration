@@ -49,9 +49,11 @@ describe('migration', function() {
 
       let user = yield User.findOne({ name: 'Axl Rose' });
       assert.deepEqual(user.name, { first: 'Axl', last: 'Rose' });
+      assert.equal(user.__schemaVersion, 1);
 
       user = yield User.findOne({ name: 'Slash' });
       assert.deepEqual(user.name, { first: 'Slash', last: '' });
+      assert.equal(user.__schemaVersion, 1);
 
       let raw = yield User.db().collection('users').find().
         sort({ 'name.first': 1 }).toArray();
@@ -79,8 +81,18 @@ describe('migration', function() {
       assert.equal(raw.length, 2);
       assert.deepEqual(raw[0].name, { first: 'Axl', last: 'Rose' });
       assert.equal(raw[0].order, 0);
+      assert.equal(raw[0].__schemaVersion, 2);
       assert.deepEqual(raw[1].name, { first: 'Slash', last: '' });
       assert.equal(raw[1].order, 1);
+      assert.equal(raw[0].__schemaVersion, 2);
+      done();
+    }).catch((error) => done(error));
+  });
+
+  it('new documents have latest schema version', function(done) {
+    co(function*() {
+      let izzy = new User({ name: { first: 'Izzy', last: 'Stradlin' } });
+      assert.equal(izzy.__schemaVersion, 2);
       done();
     }).catch((error) => done(error));
   });
