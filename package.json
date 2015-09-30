@@ -1,0 +1,36 @@
+{
+  "name": "monogram-schema-migration",
+  "version": "0.0.0",
+  "author": "Valeri Karpov <valeri.karpov@mongodb.com>",
+  "bugs": {
+    "url": "https://github.com/vkarpov15/monogram-schema-migration/issues"
+  },
+  "dependencies": {
+    "composition": "2.2.1",
+    "debug": "2.2.0",
+    "lodash": "3.x"
+  },
+  "description": "Schema migration middleware for monogram",
+  "devDependencies": {
+    "co": "4.6.0",
+    "gulp": "3.8.11",
+    "gulp-mocha": "2.0.1",
+    "istanbul": "0.3.17",
+    "mocha": "2.2.4",
+    "monogram": "https://github.com/vkarpov15/monogram/archive/master.tar.gz"
+  },
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "homepage": "https://github.com/vkarpov15/monogram-schema-migration#readme",
+  "license": "Apache 2.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vkarpov15/monogram-schema-migration.git"
+  },
+  "scripts": {
+    "coverage": "istanbul cover _mocha -- test/*.test.js",
+    "test": "mocha test/*.test.js"
+  }
+}
