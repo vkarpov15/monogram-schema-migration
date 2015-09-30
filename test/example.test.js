@@ -63,7 +63,7 @@ describe('migration', function() {
     }).catch((error) => done(error));
   });
 
-  /*it('migrateAll', function(done) {
+  it('migrateAll', function(done) {
     co(function*() {
       schema.migrate(function*(next) {
         let query = { 'name.first': { $lt: this.name.first } };
@@ -73,15 +73,15 @@ describe('migration', function() {
       });
 
       yield User.migrateAll();
-
       let raw = yield User.db().collection('users').find().
         sort({ 'name.first': 1 }).toArray();
+
       assert.equal(raw.length, 2);
       assert.deepEqual(raw[0].name, { first: 'Axl', last: 'Rose' });
       assert.equal(raw[0].order, 0);
       assert.deepEqual(raw[1].name, { first: 'Slash', last: '' });
-      assert.equal(raw[0].order, 1);
+      assert.equal(raw[1].order, 1);
       done();
     }).catch((error) => done(error));
-  });*/
+  });
 });

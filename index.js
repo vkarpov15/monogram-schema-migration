@@ -3,6 +3,7 @@
 let _ = require('lodash');
 let co = require('co');
 let composition = require('composition');
+let debug = require('debug')('monogram:migration');
 
 module.exports = function(schema) {
   schema._obj['__schemaVersion'] = { $type: Number };
@@ -13,41 +14,47 @@ module.exports = function(schema) {
     schema.migrations.push(fn);
   };
 
-  schema.method('model', 'migrateAll', function() {
-    if (!this.schema) {
-      return Promise.resolve();
-    }
+  schema.method('model', 'migrate', function(fn) {
+    schema.migrate(fn);
+  });
 
-    let schema = this.schema;
-    return new Promise((resolve, reject) => {
-      let cursor = this.find({}).cursor();
-      let numUpdated = 0;
-      let state = {
-        numOutstanding: 0,
-        ended: false
-      }
-      cursor.on('data', (doc) => {
-        ++numOutstanding;
-        co(function*() {
-          yield applyMigrations(schema, doc);
-          yield doc.$save();
-          --numOutstanding;
-          ++numUpdated
-          if (state.ended && state.numOutstanding <= 0) {
+  schema.method('model', 'migrateAll', function() {
+    return this.find({}).cursor().then((cursor) => {
+      return new Promise((resolve, reject) => {
+        let numUpdated = 0;
+        let state = {
+          numOutstanding: 0,
+          ended: false
+        };
+
+        cursor.on('data', (doc) => {
+          debug('migrating');
+          debug(doc);
+          ++state.numOutstanding;
+          co(function*() {
+            yield applyMigrations(schema, doc);
+            doc.__schemaVersion = schema.migrations.length;
+            debug('doc after migration');
+            debug(doc);
+            yield doc.$save();
+            --state.numOutstanding;
+            ++numUpdated
+            if (state.ended && state.numOutstanding <= 0) {
+              resolve(numUpdated);
+            }
+          }).catch((error) => { reject(error); });
+        });
+
+        cursor.on('error', (error) => {
+          reject(error);
+        });
+
+        cursor.on('end', () => {
+          state.ended = true;
+          if (state.numOutstanding <= 0) {
             resolve(numUpdated);
           }
-        }).catch((error) => { reject(error); });
-      });
-
-      cursor.on('error', (error) => {
-        reject(error);
-      });
-
-      cursor.on('end', () => {
-        state.ended = true;
-        if (state.numOutstanding <= 0) {
-          resolve(numUpdated);
-        }
+        });
       });
     });
   });
@@ -55,6 +62,7 @@ module.exports = function(schema) {
   schema.middleware('findOne', function*(next) {
     let doc = yield next;
     yield applyMigrations(schema, doc);
+    doc.__schemaVersion = schema.migrations.length;
     yield doc.$save();
     return doc;
   });
