@@ -60,7 +60,10 @@ module.exports = function(schema) {
   });
 
   schema.method('document', '$migrate', function() {
-    return applyMigrations(schema, this);
+    return applyMigrations(schema, this).then(() => {
+      this.__schemaVersion = schema.migrations.length;
+      return Promise.resolve();
+    });
   });
 
   schema.queue(function() {

@@ -93,6 +93,13 @@ describe('migration', function() {
     co(function*() {
       let izzy = new User({ name: { first: 'Izzy', last: 'Stradlin' } });
       assert.equal(izzy.__schemaVersion, 2);
+
+      izzy.__schemaVersion = 1;
+      yield izzy.$migrate();
+
+      assert.equal(izzy.__schemaVersion, 2);
+      assert.equal(izzy.order, 1);
+
       done();
     }).catch((error) => done(error));
   });
